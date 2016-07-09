@@ -11,13 +11,13 @@ import Security
 
 class ISKeychainWrapper: NSObject {
     
-    private var accessGroupName: String
+    var accessGroupName: String!
     
     init(accessGroup: String) {
         accessGroupName = accessGroup
     }
     
-    func addValue(value: AnyObject, forkey key: String) -> Void {
+    func addValue(value: AnyObject, forKey key: String) -> Void {
         let valueData: NSData = value.dataUsingEncoding(NSUTF8StringEncoding)!
         
         let keychainQuery: NSMutableDictionary = [
@@ -35,14 +35,49 @@ class ISKeychainWrapper: NSObject {
         }
     }
     
-    func deleteValue(forkeys keys: [String]) {
+    func addMultipleValues(values: [AnyObject], forKeys keys: [String]) -> Void {
+        for (key, value) in zip(values, keys) {
+            let valueData: NSData = value.dataUsingEncoding(NSUTF8StringEncoding)!
+            
+            let keychainQuery: NSMutableDictionary = [
+                kSecClass as String : kSecClassGenericPassword,
+                kSecAttrAccount as String : key,
+                kSecValueData as String : valueData,
+                kSecAttrAccessible as String : kSecAttrAccessibleAlways,
+                kSecAttrAccessGroup as String : accessGroupName
+            ]
+            
+            let result = SecItemAdd(keychainQuery, nil)
+            
+            if result != noErr {
+                print("ISKeychain Wrapper: Error saving value for key \(key) to keychain.")
+            }
+        }
+    }
+    
+    func deleteMultipleValues(forKeys keys: [String]) {
         for key in keys {
             let deleteKeychainQuery = [
                 kSecClass as String : kSecClassGenericPassword,
                 kSecAttrAccount as String : key,
                 kSecAttrAccessGroup as String : accessGroupName
             ]
-            _ = SecItemDelete(deleteKeychainQuery)
+            let result = SecItemDelete(deleteKeychainQuery)
+            if result != noErr {
+                print("ISKeychain Wrapper: Error deleting value for key \(key) from keychain.")
+            }
+        }
+    }
+    
+    func deleteValue(forKey key: String) {
+        let deleteKeychainQuery = [
+            kSecClass as String : kSecClassGenericPassword,
+            kSecAttrAccount as String : key,
+            kSecAttrAccessGroup as String : accessGroupName
+        ]
+        let result = SecItemDelete(deleteKeychainQuery)
+        if result != noErr {
+            print("ISKeychain Wrapper: Error deleting value for key \(key) from keychain.")
         }
     }
     
