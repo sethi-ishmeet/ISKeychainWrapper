@@ -36,7 +36,7 @@ class ISKeychainWrapper: NSObject {
     }
     
     func addMultipleValues(values: [AnyObject], forKeys keys: [String]) -> Void {
-        for (key, value) in zip(values, keys) {
+        for (key, value) in zip(keys, values) {
             let valueData: NSData = value.dataUsingEncoding(NSUTF8StringEncoding)!
             
             let keychainQuery: NSMutableDictionary = [
